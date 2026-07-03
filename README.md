@@ -22,6 +22,8 @@ Along the way, gardening notes involves trying to maximize the dense interconnec
 
 I generally do not explore the notes created by the LLM, but if you want you can explore the vault that is created using Obsidian. Just open the `vault` folder as an Obsidian vault.
 
+<img width="1280" height="955" alt="image" src="https://github.com/user-attachments/assets/f2c6818c-b4a5-4934-8790-4a45b9663e19" />
+
 ## Using This Project
 
 ### `/go` Skill
