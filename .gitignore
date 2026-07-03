@@ -1,0 +1,9 @@
+# Claude Code local, per-machine settings — not part of the template
+.claude/settings.local.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*~
+.idea/
+.vscode/
