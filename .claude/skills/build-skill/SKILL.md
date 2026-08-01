@@ -1,108 +1,122 @@
 ---
 name: build-skill
-description: Generate a new, self-contained Claude skill that inherits the go explore -> plan -> garden -> do -> garden vault loop but is narrowed to one specific goal or type of work (e.g. code review, release cutting, incident triage). Use when the user runs `/build-skill <name> - <goal>` and wants a reusable, specialized variant of the go loop written into the project's .claude/skills/.
+description: Generate or update a self-contained Claude skill for a recurring project workflow while preserving verified project-state gardening. Use when asked to build a specialized skill whose implementation, investigation, review, completion, resolution, cleanup, or handoff should explore, verify, garden, execute, verify again, and perform a final garden without adding task tracking or history to the vault.
 ---
 
-# build-skill — generate a narrowed variant of the go loop
+# build-skill — generate a state-gardening workflow
 
-You turn a one-line description of a recurring job into a full, self-contained skill. Every
-skill you emit keeps the **explore → plan → garden → do → garden** vault loop from `go`, and
-adds a `## Narrowed context` layer that specializes it for one goal.
+Turn a named recurring job into a self-contained skill. Every generated skill specializes the
+job while preserving the project-state lifecycle:
 
-The output is a skill someone can invoke over and over to run *that specific kind of work* with
-the same knowledge-gardening discipline baked in.
+**explore → verify → garden → do → verify → final garden**
+
+The generated skill may compose with any planning, ticketing, documentation, or coordination
+system. It must not duplicate those systems in `./vault`.
 
 ## Invocation contract
 
-```
+```text
 /build-skill <name> - <goal / type of work>
 ```
 
-- Split the argument on the **first** ` - ` (space-hyphen-space).
-- Left of it → `<name>`: the skill's name. Slugify to lowercase-kebab for the directory and the frontmatter `name` (`Release Cut` → `release-cut`).
-- Right of it → `<goal>`: a sentence describing what this skill should do and when.
+- Split on the first ` - `.
+- Slugify `<name>` to lowercase kebab-case for the directory and frontmatter name.
+- Treat `<goal>` as both the deliverable and the basis for natural-language trigger phrases.
+- If either half is missing, ask for it rather than guessing.
 
-Example:
-
-```
-/build-skill review - execute a code review cycle on the current staged changes and propose a plan for fixing identified problems with user input
-```
-
-→ name `review`, goal "execute a code review cycle on the current staged changes and propose a
-plan for fixing identified problems with user input".
-
-If the argument has no ` - ` separator, ask the user for the missing half (a name or a goal)
-before generating anything. Don't guess a name from a bare goal, or vice versa.
-
-## What to do
+## Generate the skill
 
 ### 1. Explore
-- Read `vault/README.md` (bootstrap the vault first if it's absent — same rule as `go`) to learn the project's vocabulary and conventions, so the generated skill speaks the project's language.
-- Read the `go` skill (`.claude/skills/go/SKILL.md`) if present — it is your base template. If it isn't present, use the embedded loop described in this file; the generated skill must be self-contained regardless.
-- Check `.claude/skills/<name>/` doesn't already exist. If it does, ask whether to overwrite or pick a new name.
 
-### 2. Plan the specialization
-From `<goal>`, work out the narrowed context the new skill needs. Answer these for the goal and
-bake the answers into the generated skill:
-- **Scope / entry points** — what does this skill look at first? (e.g. `git diff --staged`, the open PR, the failing job, the changelog.)
-- **What "explore" means here** — the specific things to read/verify for this kind of work.
-- **What "do" means here** — the concrete deliverable (a review with findings, a proposed fix plan, a cut release, a triaged incident).
-- **What to garden** — which vault pages this work should create or update (e.g. a `Review Findings` page, a per-subsystem gotcha page, a `Release Checklist` page).
-- **User-input points** — where the skill must pause and ask the user rather than proceed (the example's "with user input" is one of these).
+- Bootstrap `vault/README.md` if `vault/` is absent. Do not create plan or log directories.
+- Read the MOC and the smallest relevant set of concept pages.
+- Read `.claude/skills/go/SKILL.md` when present.
+- Inspect the existing target skill, if any. Confirm before overwriting it.
 
-### 3. Generate the skill
-Write `./.claude/skills/<name>/SKILL.md` in the current project. It must be **self-contained** —
-embed the whole loop, don't merely reference `go` (the generated skill has to work even if `go`
-is later removed). Structure:
+### 2. Design the specialization
 
-1. **Frontmatter** — `name: <slug>` and a `description` derived from `<goal>`, phrased as
-   "do X while enriching the project vault at ./vault; use when …". The description is what makes
-   the skill auto-trigger, so make it specific to the goal.
-2. **Title + one-paragraph statement** of the goal and that it runs the vault loop.
-3. **The loop, specialized** — the same explore → plan → garden → do → garden structure as `go`,
-   but with each phase's generic instructions replaced/augmented by the goal-specific answers
-   from step 2. Keep the vault mechanics verbatim: `./vault`, flat concept files, `[[wikilinks]]`,
-   `README.md` as MOC, bootstrap-if-absent, and the `vault/plans/` plan-persistence rules
-   (frontmatter + work log) for any non-trivial plan the skill produces.
-4. **`## Narrowed context`** — the scope, entry points, deliverable, gardening targets, and
-   user-input checkpoints for this goal, stated concretely.
-5. **The style rules, "what NOT to write", and irreversible-actions guardrail** carried over from
-   `go` (trim to what's relevant, but keep the vault discipline intact).
+Determine:
 
-Do not put personal names, machine names, or absolute home paths in generated skills — keep them
-portable, exactly like `go`.
+- the workflow's scope and first project entry points;
+- what must be verified before acting;
+- which current concepts and relationships help narrow discovery;
+- the concrete deliverable;
+- checks that verify the result;
+- what durable state might need gardening before and after the work;
+- user-input or authorization points required by the goal;
+- phrases that should trigger the skill when work starts, continues, finishes, resolves, closes,
+  cleans up, or is handed off.
 
-### 4. Garden
-- Add a stub page for the new skill to the project vault (e.g. `<Name> skill.md`: what it does, when to run it, what it gardens) and link it from `vault/README.md`.
-- Tell the user what you created: the path `.claude/skills/<name>/SKILL.md` and how to invoke it (`/<name>`).
+Do not invent task-management, documentation, or external-system conventions that the goal does
+not supply.
 
-## Worked example — the `review` case
+### 3. Write a self-contained skill
 
-Input:
+Create `.claude/skills/<name>/SKILL.md` containing:
 
-```
-/build-skill review - execute a code review cycle on the current staged changes and propose a plan for fixing identified problems with user input
-```
+1. Frontmatter with only `name` and `description`.
+2. A concise statement of the specialized goal.
+3. The complete specialized lifecycle: explore, verify, garden, do, verify, final garden.
+4. The vault rules and exclusions below.
+5. The goal-specific entry points, deliverable, validation, and authorization boundaries.
 
-The generated `.claude/skills/review/SKILL.md` would:
+Do not make the generated skill merely refer to `go`; it must remain usable on its own.
 
-- **Frontmatter**: `name: review`; description like "Run a code-review cycle over the staged
-  diff, surface correctness/quality findings, and propose a fix plan with the user, while
-  enriching the project vault. Use before committing non-trivial staged changes."
-- **explore**: read `vault/README.md` and any `[[Review Findings]]` / subsystem gotcha pages;
-  run `git diff --staged` and read the touched files in full for context.
-- **plan**: group findings by severity; draft a fix plan.
-- **garden (before)**: capture any newly-understood subsystem quirks as concept/gotcha pages.
-- **do**: present findings, then **pause for user input** on which to fix and how — the fix plan
-  is persisted to `vault/plans/<date>-review-fixes.md` (frontmatter + work log) since it's real work.
-- **garden (after)**: record recurring problems as durable gotcha pages so the next review starts
-  ahead; update `vault/README.md`.
-- Carries over the style rules, "what NOT to write", and the irreversible-actions guardrail.
+The description is the trigger surface. State what the skill does and include natural completion
+language where appropriate: complete, finish, resolve, close, clean up, wrap up, and hand off.
+These phrases trigger the final garden pass; they do not authorize external status changes,
+deletion, discarded work, or Git-history rewriting.
 
-## Failure modes to avoid
+### 4. Preserve the vault contract
 
-- **Don't emit a skill that just says "follow go".** It must stand alone with the full loop embedded.
-- **Don't drop the gardening.** The narrowed context is *added on top of* the vault loop, never a replacement for it.
-- **Don't invent a name or goal** the user didn't give — ask for the missing half.
-- **Don't leak personal/machine specifics** into the generated skill; keep it portable.
-- **Don't overwrite an existing skill** without confirming.
+Every generated skill must instruct the agent to:
+
+- read `vault/README.md` before broad project discovery;
+- follow only the smallest relevant set of `[[wikilinks]]`;
+- verify load-bearing vault claims against current project reality;
+- correct discovered drift before acting;
+- execute the specialized work under the project's own instructions;
+- verify the result;
+- perform a final garden pass before completion or handoff;
+- report a valid no-edit garden pass when the vault was already accurate.
+
+Every generated skill must keep the vault limited to concise current concepts, ownership,
+dependencies, data flow, boundaries, invariants, entry points, and durable gotchas.
+
+Every generated skill must exclude:
+
+- plans, work logs, task status, session histories, handoffs, backlogs, roadmaps, and TODO lists;
+- citations, decision provenance, justification trails, and lists of consulted material;
+- ticket, issue, PR, wiki, or external-document links added merely as references;
+- generic documentation, secrets, and credentials;
+- speculative stubs and links created only to increase graph density.
+
+### 5. Garden the new current state
+
+After creating the skill:
+
+- add or update a vault concept only if the new skill itself is durable project structure that
+  future agents need to navigate;
+- otherwise leave the vault unchanged and record that the final garden check found no durable
+  state to add;
+- update the MOC only when a durable concept page was added or removed.
+
+Tell the user which skill was created and how to invoke it.
+
+## Generated skill style
+
+- Use imperative language.
+- Keep the skill concise and specific to its recurring job.
+- Put all trigger information in the frontmatter description.
+- Preserve the current-state model; never turn the vault into an audit trail.
+- Include portable relative paths only. Do not include personal names, machine names, absolute
+  home paths, or assumptions about a particular task-management system.
+
+## Failure modes
+
+- Do not drop either garden pass.
+- Do not require a vault edit when verification found no durable change.
+- Do not generate plan persistence, status tracking, work logs, or history.
+- Do not overlink or create a page solely because the agent consulted something.
+- Do not let completion language bypass verification and the final garden pass.
+- Do not overwrite an existing skill without confirmation.

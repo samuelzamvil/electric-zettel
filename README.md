@@ -1,22 +1,29 @@
 # Electric Zettel
 
-This project is an abstract version of the workflow that I have been using for [Claude Code](https://code.claude.com/docs/en/quickstart). I've found that for long-running projects it's helpful to keep an ongoing self-enriching knowledge repository for LLM agents to continuously reference when planning out new changes. To make this browseable and easily ingestable by an LLM, I chose the [digital gardening approach](https://maggieappleton.com/garden-history) I use for my personal notes. I don't like having LLMs edit my notes, but in this case it is a vault entirely created by and consumed by LLMs (and never edited by humans).
+This project is an abstract version of the workflow that I have been using for [Claude Code](https://code.claude.com/docs/en/quickstart). For long-running projects, it keeps a compact, self-enriching map of current project state and relationships that LLM agents can consult before rediscovering the same structure. To make that map browsable and selectively ingestible, it uses the [digital gardening approach](https://maggieappleton.com/garden-history). The vault is created and maintained for agent use.
+
+Electric Zettel is deliberately not a task tracker. Projects can keep plans, status, history, evidence, tickets, and documentation in whatever systems they already use. The vault concentrates on current concepts, ownership, dependencies, data flow, boundaries, invariants, entry points, and durable gotchas.
 
 ## AI Disclaimer
 
-This Readme was hand authored, but the skills were created from existing LLM-authored skills I have refined in other projects (just with my personal specializations withheld).
+This project began as a hand-authored description of a workflow whose skills were adapted from LLM-authored skills refined in other projects. Its documentation and skills may now include both human and LLM-authored revisions.
 
 ## The Workflow
 
-Every session when you begin a new task using the `/go` skill the agent will:
+When `/go` is invoked for starting, continuing, completing, resolving, closing, cleaning up, or handing off project work, the agent will:
 
 1. Explore the vault starting at the entrypoint `vault/README.md` and follow wikilinks to find relevant information, then explore the code or system being operated on to confirm with the ground truth.
-2. Plan changes using the context found and persist the plan into `vault/plans` (so future agents can see why something was done)
-3. Garden any new information and update information in the vault that is now stale given the new information
-4. Execute the work plan
-5. Garden once again to capture any changed state that was a result of executing the plan
+2. Verify any vault claims that the work depends on.
+3. Garden stale state or missing durable relationships before acting.
+4. Execute the requested work using the project's existing workflow.
+5. Verify the resulting project state.
+6. Perform a final garden pass before declaring the work finished or handing it off.
 
-Along the way, gardening notes involves trying to maximize the dense interconnection between notes which helps reduce the amount of markdown wikilinks needed to follow to find key info. The LLM will also try to create links to pages that do not exist yet, which when done across notes creates abstract links between concepts that do not have their adjoining page yet authored. At a later date, when relevant info is found the frontier of the Obsidian graph can grow naturally.
+Both garden passes are mandatory checks, but they do not manufacture edits. If the vault already matches reality and the work produces no durable knowledge change, the correct result is a verified no-edit pass.
+
+Vault pages describe current project state rather than session history. Wikilinks connect concepts only when the relationship helps future agents navigate or reason about the project; the workflow does not create speculative stubs or add links merely because an agent consulted something.
+
+The completion words above refer to completing the local knowledge lifecycle. They do not authorize external status changes or destructive cleanup.
 
 ## Exploring the Vault
 
@@ -42,10 +49,10 @@ Assuming you have already been using this skill for a while in a project, your p
 
 ### `/build-skill` Skill
 
-Sometimes you want something much more specific for a given project or use case. Using the example from the previous section you could:
+Sometimes you want something much more specific for a given project or use case. `/build-skill` creates a self-contained workflow that retains the same state-gardening lifecycle without adding plans, work logs, or task status to the vault. Using the example from the previous section you could:
 
 ```
-/build-skill lightmap - create a new feature for the lightmap application. Begin by surveying existing patterns, building a plan to refactor and build ontop of what is already there, and avoid reinventing the wheel (search online for libraries that can help). Engage in code review once a feature is drafted in code and ask for user input before iterating on the review feedback. Research code review practices that would benefit this project so that this skill encodes the workflow without having to rebuild it each time.
+/build-skill lightmap - create and review features for the lightmap application, reuse verified existing patterns, ask for user input before revising review findings, and finish by reconciling the project vault with the verified result
 ```
 
 Once this is done, you can interface with the new skill:

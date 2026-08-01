@@ -3,7 +3,7 @@
 # install.sh — add the electric-zettel workflow to an existing project.
 #
 # Copies the `go` and `build-skill` skills into <project>/.claude/skills/ so the
-# explore -> plan -> garden -> do -> garden loop and its skill-generator are
+# explore -> verify -> garden -> do -> verify -> final garden loop and its skill-generator are
 # available there. The `go` skill bootstraps the ./vault knowledge base on first
 # run, so seeding a vault is optional (see --with-vault).
 #
@@ -24,7 +24,7 @@ usage() {
 install.sh — add the electric-zettel workflow to an existing project.
 
 Copies the `go` and `build-skill` skills into <project>/.claude/skills/ so the
-explore -> plan -> garden -> do -> garden loop is available there. The `go` skill
+explore -> verify -> garden -> do -> verify -> final garden loop is available there. The `go` skill
 bootstraps the ./vault knowledge base on first run, so seeding a vault is optional.
 
 Usage:

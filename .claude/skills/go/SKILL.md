@@ -1,182 +1,151 @@
 ---
 name: go
-description: Reason about, plan, and execute work on any project while continuously enriching a project-local Obsidian-style knowledge vault at ./vault. Runs an explore -> plan -> garden -> do -> garden loop so long-term knowledge, gotchas, and decisions accumulate in the repo instead of evaporating. Use whenever you are investigating, changing, or making decisions about this project and want the reasoning captured for next time.
+description: Maintain verified project state and relationship memory while starting, continuing, completing, resolving, closing, cleaning up, or handing off project work. Use for implementation, investigation, fixes, reviews, and other project work so each session explores, verifies, gardens, executes, verifies again, and performs a final garden that leaves local knowledge consistent with the project.
 ---
 
-# go — project vault + reasoning loop
+# go — project state gardening
 
-You are working inside a project. All durable knowledge about *this* project — how it is
-built, why it is shaped the way it is, the gotchas that bit someone, the decisions that were
-made — lives in an Obsidian-style vault at the project root:
+Maintain a project-local knowledge garden at `./vault/`. The vault gives future agents a compact
+map of the project's current concepts, relationships, boundaries, invariants, and durable gotchas.
+It is not a task tracker, work log, decision archive, or substitute for the project's existing
+systems.
 
-```
-./vault/
-```
+Every invocation runs this lifecycle:
 
-This skill is the bridge between the live project and that vault. Every invocation runs the
-same loop:
+**explore → verify → garden → do → verify → final garden**
 
-**explore → plan → garden → do → garden**
+- **explore** — read the relevant map before searching the project broadly.
+- **verify** — confirm load-bearing vault claims against the current project.
+- **garden** — correct the map before acting when exploration found drift or a durable gap.
+- **do** — perform the requested work using the project's own workflow.
+- **verify** — check the resulting project state.
+- **final garden** — reconcile the vault with that result before finishing or handing off.
 
-- **explore** — orient yourself in the vault and the code, then understand what is actually being asked.
-- **plan** — design an approach; for anything non-trivial, persist the plan into `vault/plans/`.
-- **garden** — enrich the vault with what you just understood *before* you act (capture the map).
-- **do** — execute the work.
-- **garden** (again) — enrich the vault with what you learned *from* acting (capture the reality).
+Both garden passes are required checks. They may correctly produce no edit when the vault already
+matches reality and the session learned no durable project fact.
 
-The two garden steps are not optional bookends — they are the point. Code records *what*
-changed; the vault records *why*, *what you tried*, and *what to watch out for next time*.
+## Vault shape
 
-## How the vault is shaped
+- Keep concept pages directly in `vault/`. Filenames mirror Obsidian links: `Build System.md`
+  is the target of `[[Build System]]`.
+- Use `vault/README.md` as the small map of content (MOC).
+- Describe current state, not how it became current.
+- Link project concepts when the relationship helps an agent navigate or reason about the project.
+- Prefer verified relationships such as ownership, dependency, data flow, boundaries, invariants,
+  workflow entry points, and recurring gotchas.
+- Keep pages short enough that following a few links costs less context than rediscovering the
+  same structure.
 
-Digital-garden style. Concepts, not folders.
+Do not maximize link count. Do not create dangling links as speculative TODOs. Add a link only
+when the relationship is current, useful, and supported by the project.
 
-- **Flat file layout.** All concept notes live directly in `vault/`. No subdirectories — **with one exception:** `vault/plans/` holds the timestamped plan records described under "Persisting plans" below. Filenames mirror Obsidian link text: `Build System.md` is the target of `[[Build System]]`.
-- **Pages are concepts, not journals.** The title is the noun. The body explains what it is in *this* project, its current state, and its gotchas. Never a changelog.
-- **Dense interlinking.** Every page should be reachable from several others. Liberally `[[link]]` to related concepts inline as you write.
-- **Stub links are encouraged.** If you mention a concept that deserves its own page but doesn't have one yet, link it anyway (`[[Deployment]]`). The dangling link is a TODO for the next time the topic comes up.
-- **`README.md` is the MOC** (Map of Content) — the top-level index. Add new pages to their appropriate section.
-- **No frontmatter required** on vault pages. Plain markdown. (Plan records under `vault/plans/` are the exception — they require frontmatter, see below.)
+## Lifecycle
 
-## What to do on every invocation
+### 0. Bootstrap
 
-### 0. Bootstrap the vault if absent
+If `vault/` is absent, create `vault/README.md` with:
 
-If `vault/` does not exist yet (this skill was just dropped into a fresh project), create the
-minimal scaffold before doing anything else:
+- a one-sentence project description;
+- brief usage rules;
+- empty sections suited to the project's current concepts.
 
-- `vault/README.md` — an empty MOC with a one-line description of the project and a few section headers to grow into.
-- `vault/plans/README.md` — a plans index with a single header line and the format `- YYYY-MM-DD — [Title](file.md) — status`.
+Do not create plans, logs, histories, registries, or speculative concept pages during bootstrap.
 
-Then proceed. Do this quietly; it is setup, not the answer.
+### 1. Explore
 
-### 1. Explore — orient
+Read `vault/README.md` first. Select the smallest relevant set of concept pages, normally one to
+five, and follow only links that materially help with the request. Then inspect the project
+artifacts that can confirm the map.
 
-Always begin by reading `vault/README.md`. It is small and tells you what already exists. From
-the MOC, identify the 1–5 pages most relevant to the request and read those before forming an
-answer. Follow `[[wikilinks]]` outward to traverse from a partial match to the real thing.
-
-Then look at the code/artifacts the request actually touches. The vault gives you the map; the
-repo is the territory.
+The vault narrows discovery; it never overrides current reality or project instructions.
 
 ### 2. Verify before relying
 
-Vault entries go stale (refactors, dependency bumps, renamed files, changed config). Before
-quoting a fact that the user is about to act on, sanity-check it against reality — read the
-current file, run the test, check the actual config value, inspect the real output. **If reality
-disagrees with the vault, trust reality** and queue the page for an update.
+Verify every vault claim that is load-bearing for the current work. Use the nearest source of
+truth available in the project: code, configuration, generated output, tests, or observable
+behavior.
 
-### 3. Plan — design the approach
+If the project disagrees with the vault, trust the project and correct the vault before acting.
+If the claim cannot be verified, label the uncertainty only when it is still useful; otherwise
+remove it.
 
-For anything beyond a trivial one-liner, design an approach before touching anything, and for
-non-trivial work **persist the plan into the vault** (see "Persisting plans" below). Prefer
-reusing existing structure and utilities the exploration surfaced over inventing new ones.
+### 3. Garden before acting
 
-### 4. Garden — enrich before acting
+Reconcile durable knowledge learned during exploration:
 
-Once you understand the shape of the work, capture that understanding in the vault *now*, while
-it is fresh — a new concept page, a filled gap in an existing one, a corrected stale fact. This
-is cheap insurance: if the "do" step is interrupted, the map still improved.
+- replace stale facts rather than appending updates;
+- add a missing concept or relationship only when it improves future navigation or reasoning;
+- remove obsolete or misleading relationships;
+- merge duplicate concepts instead of preserving parallel explanations;
+- update `vault/README.md` when the map's useful entry points change.
 
-### 5. Do — execute
+Do not garden merely to record what this session read or plans to do.
 
-Carry out the work. Keep the plan's work log current as you go (see below).
+### 4. Do
 
-### 6. Garden — enrich after acting — always
+Perform the requested work. Follow the project's own instructions and use its existing systems
+for planning, task management, history, evidence, and coordination.
 
-This is the most important step. After the work, update the vault to reflect what was actually
-learned:
+### 5. Verify the result
 
-- **New concept came up?** Create a page for it. Even a 3-line stub with a `[[link]]` or two is valuable — it gives the topic structure for next time.
-- **Existing page was incomplete?** Add the new detail. Cross-link to related pages.
-- **Existing page was wrong or stale?** Edit it. Do not preserve outdated information for history — this is a wiki, not a log. Replace, don't append "Update:" sections.
-- **You discovered a gotcha** (something that bit you, or would bite a future you)? Either give it its own page (`Foo gotcha.md`) or add a `## Gotchas` section to the relevant concept page.
-- **You linked to a stub that now has real content?** Promote it: write the page.
-- **Add reciprocal links.** If `A.md` links to `[[B]]`, then `B.md` should generally link back to `[[A]]`. Density beats hierarchy.
-- **Update `README.md`** when you add a new page — one line under the appropriate section.
+Run checks proportionate to the work and inspect the resulting state. Distinguish verified facts
+from assumptions before the final garden pass.
 
-If you changed anything in the vault during a turn, tell the user briefly at the end
-("Updated `Build System.md`, created `Caching gotcha.md`"). Don't recite diffs.
+### 6. Final garden — always
 
-## Style rules for vault pages
+Before declaring work complete, resolved, closed, clean, or ready for handoff, reconcile the vault
+with the verified result:
 
-- **Title line:** `# Page Name` matching the filename.
-- **Lead sentence:** what this concept *is in this project* (not the generic textbook definition).
-- **Use sections** (`## Current state`, `## Gotchas`, `## Related`, `## Commands`) when content warrants them, but don't force them on tiny pages.
-- **Prefer bullet lists** with concrete values (paths, module names, version numbers, flags, IDs) over prose.
-- **Inline `[[wikilinks]]`** densely. A page with only a "Related" section at the bottom is too sparse — link as you write.
-- **Be honest about uncertainty.** If a fact wasn't verified this session, mark it `(as of YYYY-MM-DD)`. If something is a guess, say so.
-- **No emoji**, no decorative headings, no marketing tone.
-- **Short is fine.** A 5-line page with good links beats a 50-line page that nobody reads.
+- update concepts and relationships changed by the work;
+- remove facts, links, stubs, and gotchas that are no longer true or useful;
+- capture newly discovered durable boundaries, invariants, entry points, or gotchas;
+- check that every edited page describes current state rather than session history;
+- keep the MOC accurate and compact.
 
-## What NOT to write in the vault
+Here, **clean** means that local project knowledge is internally consistent with the resulting
+project. It does not authorize deleting files, discarding changes, rewriting Git history, or
+performing any other destructive cleanup.
 
-- Generic documentation any web search or the framework's own docs would give. The vault is about *this project*.
-- Transcripts of conversations or blow-by-blow task progress. That belongs in the chat (or a plan's work log), not concept pages.
-- Secrets, tokens, passwords, private keys, connection strings.
-- Time-bound TODOs ("fix this by Friday"). Describe the *current state*; if a fix is pending, note it as a gotcha or open question on the concept page.
+If the final pass produces no vault edit, state that the existing map was checked and remains
+accurate. If it produces edits, briefly name the pages changed.
 
-## Filename conventions
+## Page style
 
-- Spaces in filenames are fine and expected (they match Obsidian link syntax).
-- Use Title Case for concept names: `Build System.md`, `Data Model.md`.
-- For gotcha pages, suffix `gotcha`: `flaky-test gotcha.md`.
-- Only put a version in a title when disambiguation requires it.
+- Start with `# Page Name`, matching the filename.
+- Lead with what the concept is in this project.
+- Prefer concise, concrete statements and inline `[[wikilinks]]` where relationships matter.
+- Use paths, commands, identifiers, and values only when they describe durable current state.
+- Mark meaningful uncertainty plainly; remove it once resolved.
+- Replace stale content in place. Never append changelog-style “Update” sections.
+- Keep short pages short. Do not add sections mechanically.
+- Do not use decorative headings, emoji, or marketing language.
 
-## Persisting plans
+## Exclusions
 
-When you produce a real plan for non-trivial work, persist it into the vault so future agents
-can see what was proposed and what actually got done. If your harness has an ephemeral plan file
-of its own, treat the vault copy as the durable record.
+Never put these in the vault:
 
-### Where it lives
+- plans, task status, work logs, session histories, handoffs, backlogs, roadmaps, or time-bound TODOs;
+- decision provenance, citations, justification trails, or lists of material consulted;
+- ticket, issue, pull-request, wiki, or external-document links added merely for reference;
+- generic documentation available from a framework or web search;
+- secrets, credentials, private keys, tokens, or connection strings.
 
-- Path: `vault/plans/<YYYY-MM-DD>-<short-slug>.md`. The date is when the plan was first written. The slug is short, hyphenated, descriptive (`add-auth-caching`, not `some-cool-idea`).
-- Index: `vault/plans/README.md` — chronological, one line per plan: `- YYYY-MM-DD — [Title](filename.md) — status`.
-
-### Frontmatter (required on plan records)
-
-```
----
-created: YYYY-MM-DDTHH:MM±TZ
-updated: YYYY-MM-DDTHH:MM±TZ
-status: proposed | in-progress | done | abandoned
----
-```
-
-- `created` is set once, never changed. `updated` is bumped on every edit (including work-log appends).
-- `status` transitions: `proposed` → `in-progress` (first work-log entry) → `done` (verification passes) or `abandoned` (redirected/cancelled). Keep the index in sync.
-
-### Work log (required)
-
-Every plan record ends with a `## Work log` section. As work executes, append one bullet per
-non-trivial action — successes *and* failures. The log is for future-you, not a marketing summary.
-
-```
-- YYYY-MM-DD HH:MM — what was done — outcome / next
-```
-
-### Backfill rule
-
-If you find prior plans referenced but not captured in `vault/plans/`, create stubs with
-`status: unknown` and a single work-log line noting that earlier progress wasn't recorded.
-
-### When NOT to persist a plan
-
-- Trivial single-edit tasks where no real plan existed.
-- One-off recurring/scheduled instructions that aren't project work.
+A project may independently define other systems and conventions. Do not copy their contents or
+rules into the vault unless they describe the project's current internal structure and the
+project itself requires that representation.
 
 ## Irreversible and privileged actions
 
-Some actions are hard to undo (deletes, force-pushes, migrations, prod deploys) or need
-elevated privileges or external side effects. Do not assume authorization. Stop, state exactly
-what you are about to run and why, and confirm with the user — or hand off the command for them
-to run — before proceeding. Approval in one context doesn't extend to the next.
+Do not treat “resolve,” “close,” or “clean” as authorization for external state changes or
+destructive actions. Follow the project's own authority rules and obtain confirmation where
+required.
 
-## Failure modes to avoid
+## Failure modes
 
-- **Don't answer before reading the vault.** Even a quick `README.md` skim reframes generic advice into something project-specific.
-- **Don't trust the vault blindly.** If a fact is load-bearing for an action, verify it against reality first.
-- **Don't leave the vault unchanged after a non-trivial turn.** Either you confirmed existing info (no edit needed), or you learned something new (edit needed). Pure no-op turns should be rare.
-- **Don't create duplicate pages.** Check `README.md` and list `vault/` for an existing page before creating one. If two pages cover the same concept, merge them.
-- **Don't reorganize aggressively.** The vault belongs to the project's maintainers; make small additive edits each turn, not big restructures.
+- Do not answer or act before reading the MOC.
+- Do not trust the vault without checking load-bearing claims.
+- Do not skip either garden check because another workflow manages the task.
+- Do not manufacture a vault edit when no durable state changed.
+- Do not preserve history in current-state pages.
+- Do not overlink, create speculative stubs, or stamp the vault with everything consulted.
+- Do not let completion language end the session before the final garden pass.
