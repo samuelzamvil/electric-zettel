@@ -1,6 +1,6 @@
 ---
 name: build-skill
-description: Generate or update a self-contained Claude skill for a recurring project workflow while preserving verified project-state gardening. Use when asked to build a specialized skill whose implementation, investigation, review, completion, resolution, cleanup, or handoff should explore, verify, garden, execute, verify again, and perform a final garden without adding task tracking or history to the vault.
+description: Generate or update a self-contained Claude skill for a recurring project workflow while preserving verified project-state gardening. Use when asked to build a specialized skill whose implementation, investigation, review, completion, resolution, cleanup, or handoff should explore, verify, garden, plan, execute, verify again, and perform a final garden without adding task tracking or history to the vault.
 ---
 
 # build-skill — generate a state-gardening workflow
@@ -8,7 +8,7 @@ description: Generate or update a self-contained Claude skill for a recurring pr
 Turn a named recurring job into a self-contained skill. Every generated skill specializes the
 job while preserving the project-state lifecycle:
 
-**explore → verify → garden → do → verify → final garden**
+**explore → verify → garden → plan → do → verify → final garden**
 
 The generated skill may compose with any planning, ticketing, documentation, or coordination
 system. It must not duplicate those systems in `./vault`.
@@ -30,7 +30,7 @@ system. It must not duplicate those systems in `./vault`.
 
 - Bootstrap `vault/README.md` if `vault/` is absent. Do not create plan or log directories.
 - Read the MOC and the smallest relevant set of concept pages.
-- Read `.claude/skills/go/SKILL.md` when present.
+- Read `.claude/skills/garden/SKILL.md` when present.
 - Inspect the existing target skill, if any. Confirm before overwriting it.
 
 ### 2. Design the specialization
@@ -56,11 +56,11 @@ Create `.claude/skills/<name>/SKILL.md` containing:
 
 1. Frontmatter with only `name` and `description`.
 2. A concise statement of the specialized goal.
-3. The complete specialized lifecycle: explore, verify, garden, do, verify, final garden.
+3. The complete specialized lifecycle: explore, verify, garden, plan, do, verify, final garden.
 4. The vault rules and exclusions below.
 5. The goal-specific entry points, deliverable, validation, and authorization boundaries.
 
-Do not make the generated skill merely refer to `go`; it must remain usable on its own.
+Do not make the generated skill merely refer to `garden`; it must remain usable on its own.
 
 The description is the trigger surface. State what the skill does and include natural completion
 language where appropriate: complete, finish, resolve, close, clean up, wrap up, and hand off.
@@ -75,21 +75,27 @@ Every generated skill must instruct the agent to:
 - follow only the smallest relevant set of `[[wikilinks]]`;
 - verify load-bearing vault claims against current project reality;
 - correct discovered drift before acting;
+- form and review an approach proportionate to the work without storing it in the vault;
 - execute the specialized work under the project's own instructions;
 - verify the result;
 - perform a final garden pass before completion or handoff;
 - report a valid no-edit garden pass when the vault was already accurate.
 
 Every generated skill must keep the vault limited to concise current concepts, ownership,
-dependencies, data flow, boundaries, invariants, entry points, and durable gotchas.
+dependencies, data flow, boundaries, invariants, current design rationale that constrains future
+changes, entry points, and durable gotchas.
 
 Every generated skill must exclude:
 
 - plans, work logs, task status, session histories, handoffs, backlogs, roadmaps, and TODO lists;
-- citations, decision provenance, justification trails, and lists of consulted material;
+- citations, historical decision provenance, justification trails, and lists of consulted material;
 - ticket, issue, PR, wiki, or external-document links added merely as references;
 - generic documentation, secrets, and credentials;
 - speculative stubs and links created only to increase graph density.
+
+Every generated skill must treat plan indexes, work logs, histories, and obsolete linking rules
+found in older vaults as legacy artifacts. It must not read them as current-state input or modify,
+move, or delete them without maintainer direction.
 
 ### 5. Garden the new current state
 

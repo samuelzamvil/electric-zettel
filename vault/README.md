@@ -1,6 +1,6 @@
 # Project Vault
 
-The current-state knowledge garden for this project. Every `go` session reads this map first,
+The current-state knowledge garden for this project. Every `garden` session reads this map first,
 then follows only the `[[wikilinks]]` relevant to the work.
 
 > Replace this paragraph with a one-sentence description of what this project is.
@@ -8,7 +8,7 @@ then follows only the `[[wikilinks]]` relevant to the work.
 ## How to use this vault
 
 - Pages are **concepts, not folders** — flat files in `vault/`, named to match their `[[link]]`.
-- Pages describe **current state and relationships**, not plans, work logs, or history.
+- Pages describe **current state, relationships, and constraining rationale**, not plans, work logs, or history.
 - Verify load-bearing facts against the project and replace stale content in place.
 - Link concepts only when the relationship improves navigation or reasoning.
 - Do not add citations, justification trails, or links merely because material was consulted.

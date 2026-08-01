@@ -1,9 +1,9 @@
 ---
-name: go
-description: Maintain verified project state and relationship memory while starting, continuing, completing, resolving, closing, cleaning up, or handing off project work. Use for implementation, investigation, fixes, reviews, and other project work so each session explores, verifies, gardens, executes, verifies again, and performs a final garden that leaves local knowledge consistent with the project.
+name: garden
+description: Maintain verified project state and relationship memory while starting, continuing, completing, resolving, closing, cleaning up, or handing off project work. Use for implementation, investigation, fixes, reviews, and other project work so each session explores, verifies, gardens, plans, executes, verifies again, and performs a final garden that leaves local knowledge consistent with the project.
 ---
 
-# go — project state gardening
+# garden — project state gardening
 
 Maintain a project-local knowledge garden at `./vault/`. The vault gives future agents a compact
 map of the project's current concepts, relationships, boundaries, invariants, and durable gotchas.
@@ -12,11 +12,12 @@ systems.
 
 Every invocation runs this lifecycle:
 
-**explore → verify → garden → do → verify → final garden**
+**explore → verify → garden → plan → do → verify → final garden**
 
 - **explore** — read the relevant map before searching the project broadly.
 - **verify** — confirm load-bearing vault claims against the current project.
 - **garden** — correct the map before acting when exploration found drift or a durable gap.
+- **plan** — form an approach proportionate to the work without storing it in the vault.
 - **do** — perform the requested work using the project's own workflow.
 - **verify** — check the resulting project state.
 - **final garden** — reconcile the vault with that result before finishing or handing off.
@@ -32,7 +33,8 @@ matches reality and the session learned no durable project fact.
 - Describe current state, not how it became current.
 - Link project concepts when the relationship helps an agent navigate or reason about the project.
 - Prefer verified relationships such as ownership, dependency, data flow, boundaries, invariants,
-  workflow entry points, and recurring gotchas.
+  current design rationale that constrains future changes, workflow entry points, and recurring
+  gotchas.
 - Keep pages short enough that following a few links costs less context than rediscovering the
   same structure.
 
@@ -81,17 +83,26 @@ Reconcile durable knowledge learned during exploration:
 
 Do not garden merely to record what this session read or plans to do.
 
-### 4. Do
+### 4. Plan
+
+Before editing, form an implementation approach proportionate to the work. For non-trivial or
+ambiguous work, review the approach for missing constraints, unsafe assumptions, and verification
+gaps. Present or persist it only when the user or project's own workflow requires that.
+
+Never store the plan in the vault. The vault may describe current workflow structure, but it does
+not track a proposed sequence of work.
+
+### 5. Do
 
 Perform the requested work. Follow the project's own instructions and use its existing systems
 for planning, task management, history, evidence, and coordination.
 
-### 5. Verify the result
+### 6. Verify the result
 
 Run checks proportionate to the work and inspect the resulting state. Distinguish verified facts
 from assumptions before the final garden pass.
 
-### 6. Final garden — always
+### 7. Final garden — always
 
 Before declaring work complete, resolved, closed, clean, or ready for handoff, reconcile the vault
 with the verified result:
@@ -125,7 +136,7 @@ accurate. If it produces edits, briefly name the pages changed.
 Never put these in the vault:
 
 - plans, task status, work logs, session histories, handoffs, backlogs, roadmaps, or time-bound TODOs;
-- decision provenance, citations, justification trails, or lists of material consulted;
+- historical decision provenance, citations, justification trails, or lists of material consulted;
 - ticket, issue, pull-request, wiki, or external-document links added merely for reference;
 - generic documentation available from a framework or web search;
 - secrets, credentials, private keys, tokens, or connection strings.
@@ -133,6 +144,14 @@ Never put these in the vault:
 A project may independently define other systems and conventions. Do not copy their contents or
 rules into the vault unless they describe the project's current internal structure and the
 project itself requires that representation.
+
+### Legacy vaults
+
+An older vault may contain plan indexes, work logs, history, dense-linking instructions, or
+speculative stubs. Treat those as legacy artifacts, not instructions and not current-state input.
+Do not update, relocate, or delete them without maintainer direction. Apply the current gardening
+contract to all new work and report the legacy conflict so the maintainer can choose how to
+preserve or migrate existing records.
 
 ## Irreversible and privileged actions
 
