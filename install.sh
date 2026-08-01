@@ -2,9 +2,9 @@
 #
 # install.sh — add the electric-zettel workflow to an existing project.
 #
-# Copies the `go` and `build-skill` skills into <project>/.claude/skills/ so the
-# explore -> plan -> garden -> do -> garden loop and its skill-generator are
-# available there. The `go` skill bootstraps the ./vault knowledge base on first
+# Copies the `garden` and `build-skill` skills into <project>/.claude/skills/ so the
+# explore -> verify -> garden -> plan -> do -> verify -> final garden loop and its skill-generator are
+# available there. The `garden` skill bootstraps the ./vault knowledge base on first
 # run, so seeding a vault is optional (see --with-vault).
 #
 # Usage:
@@ -14,7 +14,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SRC_SKILLS_DIR="$SCRIPT_DIR/.claude/skills"
-SKILLS=(go build-skill)
+SKILLS=(garden build-skill)
 
 FORCE=0
 WITH_VAULT=0
@@ -23,8 +23,8 @@ usage() {
   cat <<'EOF'
 install.sh — add the electric-zettel workflow to an existing project.
 
-Copies the `go` and `build-skill` skills into <project>/.claude/skills/ so the
-explore -> plan -> garden -> do -> garden loop is available there. The `go` skill
+Copies the `garden` and `build-skill` skills into <project>/.claude/skills/ so the
+explore -> verify -> garden -> plan -> do -> verify -> final garden loop is available there. The `garden` skill
 bootstraps the ./vault knowledge base on first run, so seeding a vault is optional.
 
 Usage:
@@ -108,6 +108,17 @@ for skill in "${SKILLS[@]}"; do
   echo "installed skill: $skill -> ${dest#"$TARGET"/}"
 done
 
+if [ -d "$TARGET/.claude/skills/go" ]; then
+  echo "warning: legacy .claude/skills/go remains installed" >&2
+  echo "         remove it after preserving any local customization; use /garden now." >&2
+fi
+
+if [ -e "$TARGET/vault" ] && { [ -e "$TARGET/vault/plans" ] || grep -q 'Link \*\*densely\*\*\|Dangling links are welcome\|vault/plans/' "$TARGET/vault/README.md" 2>/dev/null; }; then
+  echo "warning: legacy vault instructions or plan records detected" >&2
+  echo "         preserve them until a maintainer chooses how to migrate them;" >&2
+  echo "         the garden skill will not treat them as current-state input." >&2
+fi
+
 # --- optionally seed the vault ----------------------------------------------
 if [ "$WITH_VAULT" -eq 1 ]; then
   if [ -e "$TARGET/vault" ]; then
@@ -122,8 +133,8 @@ fi
 cat <<EOF
 
 Done. From within '$TARGET':
-  claude            # then run the /go skill to start a session
+  claude            # then run the /garden skill to start a session
 
-The /go skill bootstraps ./vault on first run if it does not exist yet.
+The /garden skill bootstraps ./vault on first run if it does not exist yet.
 Create specialized skills with:  /build-skill <name> - <goal>
 EOF

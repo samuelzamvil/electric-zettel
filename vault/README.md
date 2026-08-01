@@ -1,17 +1,17 @@
 # Project Vault
 
-The knowledge garden for this project. Every `go` session reads this map first, then follows the
-`[[wikilinks]]` outward to the relevant concept pages. Add a one-line entry here whenever you
-create a new page.
+The current-state knowledge garden for this project. Every `garden` session reads this map first,
+then follows only the `[[wikilinks]]` relevant to the work.
 
 > Replace this paragraph with a one-sentence description of what this project is.
 
 ## How to use this vault
 
 - Pages are **concepts, not folders** — flat files in `vault/`, named to match their `[[link]]`.
-- Pages describe **current state and gotchas**, not history. Edit in place; don't append "Update:" sections.
-- Link **densely** as you write. Dangling links are welcome — they mark the next page to write.
-- `vault/plans/` holds timestamped plan records (see [plans](plans/README.md)).
+- Pages describe **current state, relationships, and constraining rationale**, not plans, work logs, or history.
+- Verify load-bearing facts against the project and replace stale content in place.
+- Link concepts only when the relationship improves navigation or reasoning.
+- Do not add citations, justification trails, or links merely because material was consulted.
 
 ## Map of content
 
@@ -28,6 +28,3 @@ create a new page.
 
 ### Gotchas
 <!-- e.g. - [[flaky-test gotcha]] — the intermittent CI failure and its cause -->
-
-### Plans
-- [Plan records](plans/README.md) — proposed and executed work, with work logs.
